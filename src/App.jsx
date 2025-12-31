@@ -21,7 +21,10 @@ function App() {
   const [categorySearch, setCategorySearch] = useState("");
   const [priceSearch, setPriceSearch] = useState("");
 
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    const savedCartItems = localStorage.getItem('cartItems');
+    return savedCartItems ? JSON.parse(savedCartItems) : [];
+  });
 
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
@@ -86,6 +89,19 @@ useEffect(() => {
       console.log("clean-up -> clear timer");
     }
   }, [searchText])
+
+  useEffect(() => {
+      localStorage.setItem('cartItems', JSON.stringify(cartItems))
+      console.log("cartItems set to localstorage")
+  },[cartItems])
+
+  // useEffect(() => {
+  //   const savedCartItems = localStorage.getItem('cartItems');
+  //   if(savedCartItems) {
+  //     setCartItems( JSON.parse( savedCartItems ) )
+  //   }
+  //   console.log("cartItems retrived from localstorage")
+  // },[])
 
  
 
