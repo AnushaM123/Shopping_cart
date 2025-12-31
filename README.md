@@ -23,6 +23,7 @@ This project is built to practice:
 - Debouncing search input
 - Cleanup functions
 - localStorage persistence
+- React.memo and usecallback
 
 Tech Stack:
 - React
@@ -30,4 +31,6 @@ Tech Stack:
 - CSS
 
 Learning Focus:
-Mastering React hooks through real-world patterns.
+- Mastering React hooks through real-world patterns.
+- React.memo is used to prevent unnecessary re-renders and useCallback to memoize event handlers, improving performance and avoiding unnecessary updates
+

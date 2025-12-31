@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React ,{ useEffect, useState, useCallback } from "react";
 import "./App.css";
 
 // const products = [
@@ -136,43 +136,44 @@ useEffect(() => {
     return 0;
   });
 
-  const handleAddItems = (product) => {
-    const existingItem = cartItems.find((item) => item.id === product.id);
+  const handleAddItems = useCallback((product) => {
+  setCartItems(prev => {
+    const existingItem = prev.find(item => item.id === product.id);
 
     if (existingItem) {
-      setCartItems(
-        cartItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
+      return prev.map(item =>
+        item.id === product.id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
       );
-    } else {
-      setCartItems([...cartItems, { ...product, quantity: 1 }]);
     }
-  };
 
-  const handleIncrement = (id) => {
-    setCartItems(
-      cartItems.map((item) =>
+    return [...prev, { ...product, quantity: 1 }];
+  });
+}, []);
+
+
+  const handleIncrement = useCallback((id) => {
+    setCartItems(prev =>
+      prev.map((item) =>
         item.id === id ? { ...item, quantity: item.quantity + 1 } : item
       )
     );
-  };
+  },[]);
 
-  const handleDecrement = (id) => {
-    setCartItems(
-      cartItems
+  const handleDecrement = useCallback((id) => {
+    setCartItems(prev =>
+      prev
         .map((item) =>
           item.id === id ? { ...item, quantity: item.quantity - 1 } : item
         )
         .filter((item) => item.quantity > 0)
     );
-  };
+  },[]);
 
-  const handleDeleteItem = (id) => {
-    setCartItems(cartItems.filter((item) => item.id !== id));
-  };
+  const handleDeleteItem = useCallback((id) => {
+    setCartItems(prev => prev.filter((item) => item.id !== id));
+  },[]);
 
   const handleClear = () => {
     setCartItems([]);
@@ -260,7 +261,7 @@ function FilterList({ priceFilteredList, onAddItems }) {
   );
 }
 
-function Cart({
+const Cart = React.memo(function Cart({
   cartItems,
   onIncrement,
   onDecrement,
@@ -296,14 +297,15 @@ function Cart({
         ))}
     </>
   );
-}
+})
 
 function Load() {
   return (
     <p>Loading...!!!</p>
   );
 }
-function CartItem({ item, onIncrement, onDecrement, onDeleteItem }) {
+
+const CartItem = React.memo(function CartItem({ item, onIncrement, onDecrement, onDeleteItem }) {
   return (
     <li key={item.id}>
       <div>
@@ -327,9 +329,9 @@ function CartItem({ item, onIncrement, onDecrement, onDeleteItem }) {
       </div>
     </li>
   );
-}
+})
 
-function Stats({ cartItems }) {
+const Stats = React.memo(function Stats({ cartItems }) {
   const total = cartItems.reduce((a, b) => a + b.price * b.quantity, 0);
   const tax = total * 0.1;
 
@@ -340,6 +342,6 @@ function Stats({ cartItems }) {
       <h3>Grand Total : ${total + tax}</h3>
     </div>
   );
-}
+})
 
 export default App;
