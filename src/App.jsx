@@ -1,5 +1,8 @@
-import React ,{ useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import "./App.css";
+import { useFetch } from "./hooks/useFetch";
+import { useLocalStorage } from "./hooks/useLocalStorage";
+import { usePersistCart } from "./hooks/usePersistCart";
 
 // const products = [
 //   { id: 1, name: "Apple", category: "Fruits", price: 30 },
@@ -12,102 +15,16 @@ import "./App.css";
 // ];
 
 function App() {
-  const [products, setProducts] = useState([]); //state to store all products fetched from api
-
-  const [Loading, setLoading] = useState(false); // state to show loading while api is fetching data
-
-  const [error, setError] = useState(""); // state to show error messages
-   const [searchText, setSearchText] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
   const [priceSearch, setPriceSearch] = useState("");
 
-  const [cartItems, setCartItems] = useState(() => {
-    const savedCartItems = localStorage.getItem('cartItems');
-    return savedCartItems ? JSON.parse(savedCartItems) : [];
-  });
+  const { products, Loading, error } = useFetch();
+  const { searchText, setSearchText, debouncedSearch } = useLocalStorage();
+  const { cartItems, setCartItems } = usePersistCart();
 
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-
-  //code to fetch products data from api
-
-  useEffect(() => {
-    async function fetchProducts() {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          "https://694d1791ad0f8c8e6e1fb5a9.mockapi.io/api/v1/items"
-        );
-
-        if (!res.ok)
-          throw new Error(
-            "Something went wrong!! unable to fetch the products"
-          );
-
-        const data = await res.json();
-        setProducts(data);
-      } catch (err) {
-        console.error(err.message);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProducts();
-  }, []);
-
-  // creating presistance of searchText using useEffect hook, operations on localstorage is a sideEffect, so we need useeffect
-
-
-// useEffect to set item to local-storage, we have serachText state inside dependency array, because we want to set to localstorage on every searchText state change
-//sync state to browser storage    
-useEffect(() => {
-    if(debouncedSearch) {localStorage.setItem('searchText', debouncedSearch);}
-    
-    console.log(`${debouncedSearch} is set to localstorage`)
-  }, [debouncedSearch]);
-
-  //useEffect to getItem from local-storage
-  //dependency array is empty, because we want to run this effect only on mount
-  useEffect(() => {
-    const savedText = localStorage.getItem('searchText');
-    if(savedText) {
-     setSearchText(savedText)
-    }
-    console.log(`${savedText} is retrived from local storage`)
-  }, [])
-
-  //I use useEffect with a cleanup function to debounce user input. When the input changes, the previous timer is cleared and a new one is created, ensuring the side effect only runs after the user stops typing.
-
-  useEffect(() => {
-    console.log("Debounce started");
-    const timedId = setTimeout(() => {
-      console.log("Debounce fineshed");
-      setDebouncedSearch(searchText);
-    }, 500);
-
-    return () => {clearTimeout(timedId)
-      console.log("clean-up -> clear timer");
-    }
-  }, [searchText])
-
-  useEffect(() => {
-      localStorage.setItem('cartItems', JSON.stringify(cartItems))
-      console.log("cartItems set to localstorage")
-  },[cartItems])
-
-  // useEffect(() => {
-  //   const savedCartItems = localStorage.getItem('cartItems');
-  //   if(savedCartItems) {
-  //     setCartItems( JSON.parse( savedCartItems ) )
-  //   }
-  //   console.log("cartItems retrived from localstorage")
-  // },[])
-
- 
-
-  // const handleTextSearch = (e) => {
-  //   setSearchText(e.target.value);
-  // };
+  const handleTextSearch = (e) => {
+    setSearchText(e.target.value);
+  };
 
   const handleCategorySearch = (e) => {
     setCategorySearch(e.target.value);
@@ -136,44 +53,55 @@ useEffect(() => {
     return 0;
   });
 
-  const handleAddItems = useCallback((product) => {
-  setCartItems(prev => {
-    const existingItem = prev.find(item => item.id === product.id);
+  const handleAddItems = useCallback(
+    (product) => {
+      setCartItems((prev) => {
+        const existingItem = prev.find((item) => item.id === product.id);
 
-    if (existingItem) {
-      return prev.map(item =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      );
-    }
+        if (existingItem) {
+          return prev.map((item) =>
+            item.id === product.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          );
+        }
 
-    return [...prev, { ...product, quantity: 1 }];
-  });
-}, []);
+        return [...prev, { ...product, quantity: 1 }];
+      });
+    },
+    [setCartItems]
+  );
 
-
-  const handleIncrement = useCallback((id) => {
-    setCartItems(prev =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
-  },[]);
-
-  const handleDecrement = useCallback((id) => {
-    setCartItems(prev =>
-      prev
-        .map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+  const handleIncrement = useCallback(
+    (id) => {
+      setCartItems((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, quantity: item.quantity + 1 } : item
         )
-        .filter((item) => item.quantity > 0)
-    );
-  },[]);
+      );
+    },
+    [setCartItems]
+  );
 
-  const handleDeleteItem = useCallback((id) => {
-    setCartItems(prev => prev.filter((item) => item.id !== id));
-  },[]);
+  const handleDecrement = useCallback(
+    (id) => {
+      setCartItems((prev) =>
+        prev
+          .map((item) =>
+            item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+          )
+          .filter((item) => item.quantity > 0)
+      );
+    },
+    [setCartItems]
+  );
+
+  const handleDeleteItem = useCallback(
+    (id) => {
+      setCartItems((prev) => prev.filter((item) => item.id !== id));
+    },
+    [setCartItems]
+  );
 
   const handleClear = () => {
     setCartItems([]);
@@ -183,7 +111,7 @@ useEffect(() => {
     <>
       <Search
         searchText={searchText}
-        setSearchText={setSearchText}
+        handleTextSearch={handleTextSearch}
         categorySearch={categorySearch}
         handleCategorySearch={handleCategorySearch}
         priceSearch={priceSearch}
@@ -209,23 +137,19 @@ useEffect(() => {
 
 function Search({
   searchText,
-  setSearchText,
+  handleTextSearch,
   categorySearch,
   handleCategorySearch,
   priceSearch,
   handlePriceSearch,
 }) {
-
-
-
-
   return (
     <div>
       <input
         type="text"
         placeholder="search here..."
         value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
+        onChange={handleTextSearch}
       />
 
       <select value={categorySearch} onChange={handleCategorySearch}>
@@ -297,15 +221,18 @@ const Cart = React.memo(function Cart({
         ))}
     </>
   );
-})
+});
 
 function Load() {
-  return (
-    <p>Loading...!!!</p>
-  );
+  return <p>Loading...!!!</p>;
 }
 
-const CartItem = React.memo(function CartItem({ item, onIncrement, onDecrement, onDeleteItem }) {
+const CartItem = React.memo(function CartItem({
+  item,
+  onIncrement,
+  onDecrement,
+  onDeleteItem,
+}) {
   return (
     <li key={item.id}>
       <div>
@@ -329,7 +256,7 @@ const CartItem = React.memo(function CartItem({ item, onIncrement, onDecrement, 
       </div>
     </li>
   );
-})
+});
 
 const Stats = React.memo(function Stats({ cartItems }) {
   const total = cartItems.reduce((a, b) => a + b.price * b.quantity, 0);
@@ -342,6 +269,6 @@ const Stats = React.memo(function Stats({ cartItems }) {
       <h3>Grand Total : ${total + tax}</h3>
     </div>
   );
-})
+});
 
 export default App;
