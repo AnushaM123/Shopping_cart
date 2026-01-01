@@ -3,6 +3,10 @@ import "./App.css";
 import { useFetch } from "./hooks/useFetch";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { usePersistCart } from "./hooks/usePersistCart";
+import Search from "./components/Search.jsx";
+import FilterList from "./components/FilterList.jsx";
+import Cart from "./components/Cart.jsx";
+import Stats from "./components/Stats.jsx";
 
 // const products = [
 //   { id: 1, name: "Apple", category: "Fruits", price: 30 },
@@ -134,141 +138,5 @@ function App() {
     </>
   );
 }
-
-function Search({
-  searchText,
-  handleTextSearch,
-  categorySearch,
-  handleCategorySearch,
-  priceSearch,
-  handlePriceSearch,
-}) {
-  return (
-    <div>
-      <input
-        type="text"
-        placeholder="search here..."
-        value={searchText}
-        onChange={handleTextSearch}
-      />
-
-      <select value={categorySearch} onChange={handleCategorySearch}>
-        <option>All</option>
-        <option>Fruits</option>
-        <option>Vegetables</option>
-        <option>Dairy</option>
-        <option>Bakery</option>
-      </select>
-
-      <select value={priceSearch} onChange={handlePriceSearch}>
-        <option>None</option>
-        <option>Low to High</option>
-        <option>High to Low</option>
-      </select>
-    </div>
-  );
-}
-
-function FilterList({ priceFilteredList, onAddItems }) {
-  return (
-    <ul>
-      {priceFilteredList.map((item) => (
-        <li key={item.id}>
-          <span>
-            {" "}
-            {item.name} - {item.category} - ${item.price}{" "}
-          </span>
-          <button onClick={() => onAddItems(item)}>Add</button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-const Cart = React.memo(function Cart({
-  cartItems,
-  onIncrement,
-  onDecrement,
-  onDeleteItem,
-  onClearCart,
-  Loading,
-  error,
-}) {
-  return (
-    <>
-      {Loading && <Load />}
-      {!Loading && error && <p>{error}</p>}
-
-      {!Loading &&
-        !error &&
-        (cartItems.length > 0 ? (
-          <div>
-            <ul>
-              {cartItems.map((item) => (
-                <CartItem
-                  item={item}
-                  onIncrement={onIncrement}
-                  onDecrement={onDecrement}
-                  onDeleteItem={onDeleteItem}
-                  key={item.id}
-                />
-              ))}
-            </ul>
-            <button onClick={onClearCart}>Clear</button>
-          </div>
-        ) : (
-          <p>Add items to your cart</p>
-        ))}
-    </>
-  );
-});
-
-function Load() {
-  return <p>Loading...!!!</p>;
-}
-
-const CartItem = React.memo(function CartItem({
-  item,
-  onIncrement,
-  onDecrement,
-  onDeleteItem,
-}) {
-  return (
-    <li key={item.id}>
-      <div>
-        <span>
-          {item.name} - ${item.price * item.quantity} - {item.category}
-        </span>
-        <button
-          onClick={() => onIncrement(item.id)}
-          disabled={item.quantity === 10}
-        >
-          +
-        </button>
-        <span>{item.quantity}</span>
-        <button
-          onClick={() => onDecrement(item.id)}
-          disabled={item.quantity === 0}
-        >
-          -
-        </button>
-        <button onClick={() => onDeleteItem(item.id)}>&times;</button>
-      </div>
-    </li>
-  );
-});
-
-const Stats = React.memo(function Stats({ cartItems }) {
-  const total = cartItems.reduce((a, b) => a + b.price * b.quantity, 0);
-  const tax = total * 0.1;
-
-  return (
-    <div>
-      <h3>Total: ${total}</h3>
-      <h3>Tax : ${tax}</h3>
-      <h3>Grand Total : ${total + tax}</h3>
-    </div>
-  );
-});
 
 export default App;
