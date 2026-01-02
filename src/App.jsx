@@ -44,7 +44,7 @@ function App() {
       .includes(debouncedSearch.toLowerCase());
 
     const matchesCategory =
-      categorySearch === "" || categorySearch == "All"
+      categorySearch === "" || categorySearch === "All"
         ? true
         : product.category === categorySearch;
 
@@ -66,25 +66,25 @@ function App() {
           return prev.map((item) =>
             item.id === product.id
               ? { ...item, quantity: item.quantity + 1 }
-              : item
+              : item,
           );
         }
 
         return [...prev, { ...product, quantity: 1 }];
       });
     },
-    [setCartItems]
+    [setCartItems],
   );
 
   const handleIncrement = useCallback(
     (id) => {
       setCartItems((prev) =>
         prev.map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-        )
+          item.id === id ? { ...item, quantity: item.quantity + 1 } : item,
+        ),
       );
     },
-    [setCartItems]
+    [setCartItems],
   );
 
   const handleDecrement = useCallback(
@@ -92,19 +92,19 @@ function App() {
       setCartItems((prev) =>
         prev
           .map((item) =>
-            item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+            item.id === id ? { ...item, quantity: item.quantity - 1 } : item,
           )
-          .filter((item) => item.quantity > 0)
+          .filter((item) => item.quantity > 0),
       );
     },
-    [setCartItems]
+    [setCartItems],
   );
 
   const handleDeleteItem = useCallback(
     (id) => {
       setCartItems((prev) => prev.filter((item) => item.id !== id));
     },
-    [setCartItems]
+    [setCartItems],
   );
 
   const handleClear = () => {
