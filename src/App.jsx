@@ -25,7 +25,11 @@ function App() {
   const { products, Loading, error } = useFetch();
   const { searchText, setSearchText, debouncedSearch } = useLocalStorage();
   const { cartItems, setCartItems } = usePersistCart();
+const [showCart, setShowCart] = useState(false);
 
+  const handleShowCart = () => {
+    setShowCart(prev => !prev);
+  };
   const handleTextSearch = (e) => {
     setSearchText(e.target.value);
   };
@@ -133,8 +137,10 @@ function App() {
         onClearCart={handleClear}
         Loading={Loading}
         error={error}
+        showCart={showCart}
+        onShowCart={handleShowCart}
       />
-      <Stats cartItems={cartItems} />
+      <Stats cartItems={cartItems} showCart={showCart} onShowCart={handleShowCart} />
     </>
   );
 }
